@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  migrate:
+    image: migrate/migrate
+    container_name: walki_migrate
+    entrypoint: [ "sh", "-c", "migrate -path=/migrations -database postgres://walki_user:walki_pass@db:5432/walki?sslmode=disable up" ]
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      - db
+
+volumes:
+  db_data:
