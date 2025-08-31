@@ -109,13 +109,16 @@ CREATE TABLE payments
 
 CREATE TABLE route_progress
 (
-    id               SERIAL PRIMARY KEY,
-    user_id          INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    order_id         INT NOT NULL,
-    current_point_id INT,
-    status           progress_status DEFAULT 'in_progress',
-    started_at       TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
-    completed_at     TIMESTAMP
+    id          BIGSERIAL PRIMARY KEY,
+    user_id     BIGINT    NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    route_id    BIGINT    NOT NULL REFERENCES routes (id) ON DELETE CASCADE, -- агрегат (удобно искать все прогрессы по маршруту)
+    version_id  BIGINT    NOT NULL REFERENCES route_versions (id) ON DELETE CASCADE,
+    current_idx INT       NOT NULL DEFAULT 0,                                -- индекс следующей точки к показу
+    started_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    finished_at TIMESTAMP NULL,
+    content_msg_id BIGINT,
+    voice_msg_id   BIGINT,
+    UNIQUE (user_id, version_id)                                             -- один активный прогресс на версию
 );
 
 CREATE TABLE route_point_logs
@@ -169,10 +172,6 @@ ALTER TABLE orders
     ADD FOREIGN KEY (version_id) REFERENCES route_versions (id) ON DELETE RESTRICT;
 ALTER TABLE payments
     ADD FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE;
-ALTER TABLE route_progress
-    ADD FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE;
-ALTER TABLE route_progress
-    ADD FOREIGN KEY (current_point_id) REFERENCES route_points (id) ON DELETE SET NULL;
 ALTER TABLE route_point_logs
     ADD FOREIGN KEY (progress_id) REFERENCES route_progress (id) ON DELETE CASCADE;
 ALTER TABLE route_point_logs

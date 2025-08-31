@@ -3,16 +3,12 @@ package models
 import "time"
 
 type RoutePoint struct {
-	ID                  int
-	VersionID           int
-	Title               string
-	Description         string
-	Latitude            float64
-	Longitude           float64
-	OrderIndex          int
-	Status              string
-	ArrivalInstructions string
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	Media               []Media
+	ID          int
+	VersionID   int
+	Idx         int
+	Title       string
+	Description string
+	Lat         float64
+	Lon         float64
+	CreatedAt   time.Time
 }

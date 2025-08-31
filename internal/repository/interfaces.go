@@ -24,3 +24,15 @@ type UserRepository interface {
 	Upsert(ctx context.Context, u *models.User) error
 	ByTelegramID(ctx context.Context, tgID int64) (*models.User, error)
 }
+
+type RouteRunRepository interface {
+	FirstPoint(ctx context.Context, versionID int) (*models.RoutePoint, error)
+	PointByIndex(ctx context.Context, versionID, idx int) (*models.RoutePoint, error)
+	NextIndex(ctx context.Context, versionID, after int) (int, bool, error)
+	PrevIndex(ctx context.Context, versionID, before int) (int, bool, error)
+	PointMedia(ctx context.Context, pointID int) (photos []string, audios []string, err error)
+	UpsertProgress(ctx context.Context, userID, routeID, versionID int, idx int) error
+	GetProgress(ctx context.Context, userID, versionID int) (*models.RouteProgress, error)
+	Finish(ctx context.Context, userID, versionID int) error
+	UpdateMessageIDs(ctx context.Context, userID, versionID int, contentMsgID, voiceMsgID *int) error
+}

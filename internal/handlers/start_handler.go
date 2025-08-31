@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -24,7 +25,7 @@ func (h *Handler) handleStart(update tgbotapi.Update) {
 	}
 
 	// Сохраняем пользователя в БД
-	if err := h.storage.SaveUser(u); err != nil {
+	if err := h.users.Register(context.Background(), u); err != nil {
 		log.Printf("Ошибка сохранения пользователя: %v", err)
 	}
 

@@ -15,7 +15,7 @@ func (h *Handler) handleRoutes(update tgbotapi.Update) {
 }
 
 func (h *Handler) showCitySelection(chatID int64) {
-	cities, err := h.routeSvc.Cities(context.Background())
+	cities, err := h.routes.Cities(context.Background())
 	if err != nil {
 		log.Printf("Error getting cities: %v", err)
 		h.sendMessage(chatID, "Ошибка при загрузке городов")
@@ -47,7 +47,7 @@ func (h *Handler) showCitySelection(chatID int64) {
 }
 
 func (h *Handler) showRoutesByCity(chatID int64, city string) {
-	routes, err := h.routeSvc.ListByCity(context.Background(), city)
+	routes, err := h.routes.ListByCity(context.Background(), city)
 	if err != nil {
 		log.Printf("Error getting routes for city %s: %v", city, err)
 		h.sendMessage(chatID, "Ошибка при загрузке маршрутов")
@@ -82,7 +82,7 @@ func (h *Handler) showRoutesByCity(chatID int64, city string) {
 }
 
 func (h *Handler) showRouteDetails(chatID int64, routeID int) {
-	version, err := h.routeSvc.Details(context.Background(), routeID)
+	version, err := h.routes.Details(context.Background(), routeID)
 	if err != nil {
 		log.Printf("Error getting route details for ID %d: %v", routeID, err)
 		h.sendMessage(chatID, "Ошибка при загрузке информации о маршруте")
