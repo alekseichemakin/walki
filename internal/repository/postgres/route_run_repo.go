@@ -54,29 +54,34 @@ func (r *RouteRunRepo) PrevIndex(ctx context.Context, versionID, before int) (in
 	return idx, true, nil
 }
 
-func (r *RouteRunRepo) PointMedia(ctx context.Context, pointID int) (photos []string, audios []string, err error) {
+func (r *RouteRunRepo) PointMediaIDs(ctx context.Context, pointID int) (photoIDs []int64, audioIDs []int64, err error) {
 	const q = `
-      SELECT m.type, m.url
-      FROM route_point_media rpm
-      JOIN media m ON m.id = rpm.media_id
-      WHERE rpm.route_point_id=$1`
+SELECT m.id, m.type
+FROM route_point_media rpm
+JOIN media m ON m.id = rpm.media_id
+WHERE rpm.route_point_id = $1`
 	rows, err := r.db.Query(ctx, q, pointID)
 	if err != nil {
 		return nil, nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
-		var typ, url string
-		if err := rows.Scan(&typ, &url); err != nil {
+		var (
+			id  int64
+			typ string
+		)
+		if err := rows.Scan(&id, &typ); err != nil {
 			return nil, nil, err
 		}
-		if typ == "image" {
-			photos = append(photos, url)
-		} else if typ == "audio" {
-			audios = append(audios, url)
+		switch typ {
+		case "image":
+			photoIDs = append(photoIDs, id)
+		case "audio":
+			audioIDs = append(audioIDs, id)
 		}
 	}
-	return photos, audios, rows.Err()
+	return photoIDs, audioIDs, rows.Err()
 }
 
 func (r *RouteRunRepo) UpsertProgress(ctx context.Context, userID, routeID, versionID int, idx int) error {

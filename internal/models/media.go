@@ -12,4 +12,7 @@ type Media struct {
 	UploadedBy  int
 	UploadedAt  time.Time
 	IsPublic    bool
+	MimeType    *string
+	S3Bucket    *string
+	S3Key       *string
 }

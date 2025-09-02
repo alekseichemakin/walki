@@ -4,6 +4,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"walki/internal/handlers"
 	"walki/internal/service"
+	"walki/internal/service/tgmedia"
 )
 
 // Bot представляет собой экземпляр Telegram бота
@@ -18,9 +19,10 @@ func New(token string,
 	orderSvc *service.OrderService,
 	profileSvc *service.ProfileService,
 	userSvc *service.UserService,
-	runSvc *service.RouteRunService) *Bot {
+	runSvc *service.RouteRunService,
+	tg *tgmedia.Service) *Bot {
 	api, _ := tgbotapi.NewBotAPI(token)
-	h := handlers.NewHandler(api, routeSvc, orderSvc, profileSvc, userSvc, runSvc)
+	h := handlers.NewHandler(api, routeSvc, orderSvc, profileSvc, userSvc, runSvc, tg)
 	return &Bot{api: api, handler: h}
 }
 

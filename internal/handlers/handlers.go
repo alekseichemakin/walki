@@ -11,6 +11,7 @@ import (
 	"walki/internal/handlers/mux/middlewares"
 	"walki/internal/keyboards"
 	"walki/internal/service"
+	"walki/internal/service/tgmedia"
 )
 
 // Handler обрабатывает входящие сообщения и callback'и
@@ -22,8 +23,8 @@ type Handler struct {
 	profile *service.ProfileService
 	users   *service.UserService
 	run     *service.RouteRunService
-
-	router *mux.Router
+	tgMedia *tgmedia.Service
+	router  *mux.Router
 }
 
 // Чистый конструктор с DI (используется из app/bot)
@@ -32,7 +33,8 @@ func NewHandler(bot *tgbotapi.BotAPI,
 	os *service.OrderService,
 	ps *service.ProfileService,
 	userSvc *service.UserService,
-	runSvc *service.RouteRunService) *Handler {
+	runSvc *service.RouteRunService,
+	tg *tgmedia.Service) *Handler {
 	h := &Handler{
 		bot:     bot,
 		routes:  rs,
@@ -40,6 +42,7 @@ func NewHandler(bot *tgbotapi.BotAPI,
 		profile: ps,
 		users:   userSvc,
 		run:     runSvc,
+		tgMedia: tg,
 	}
 
 	// --- Router  middlewares

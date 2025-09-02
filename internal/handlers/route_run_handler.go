@@ -36,7 +36,7 @@ func (h *Handler) renderRoutePoint(chatID int64, userID int, data *service.Point
 
 // Удаление сообщения по id (если оно есть)
 func (h *Handler) deleteIfExists(chatID int64, msgID *int) {
-	if msgID == nil {
+	if msgID == nil || *msgID == 0 {
 		return
 	}
 	del := tgbotapi.NewDeleteMessage(chatID, *msgID)
@@ -47,25 +47,19 @@ func (h *Handler) deleteIfExists(chatID int64, msgID *int) {
 
 // Отправить новое контент-сообщение (фото+подпись или текст) и сохранить его message_id
 func (h *Handler) sendFreshContent(chatID int64, userID int, data *service.PointWithMedia, caption string, kb tgbotapi.InlineKeyboardMarkup) error {
-	if len(data.Photos) > 0 {
-		// Фото как фото (не документ) + подпись
-		msg := tgbotapi.NewPhoto(chatID, tgbotapi.FileURL(data.Photos[0]))
-		msg.Caption = caption
-		msg.ParseMode = "Markdown"
-		msg.ReplyMarkup = kb
-
-		sent, err := h.bot.Send(msg)
+	// если есть фото — отправляем его через сервис (кэш TG + presigned S3)
+	if len(data.PhotoIds) > 0 {
+		_, msgID, err := h.tgMedia.SendMedia(h.ctx(), h.bot, chatID, data.PhotoIds[0], caption, "Markdown")
 		if err != nil {
 			return err
 		}
-		return h.run.UpdateMessageIDs(h.ctx(), userID, data.VersionID, &sent.MessageID, nil)
+		return h.run.UpdateMessageIDs(h.ctx(), userID, data.VersionID, &msgID, nil)
 	}
 
-	// Текстовая «страница»
+	// иначе — текстовая «страница»
 	m := tgbotapi.NewMessage(chatID, caption)
 	m.ParseMode = "Markdown"
 	m.ReplyMarkup = kb
-
 	sent, err := h.bot.Send(m)
 	if err != nil {
 		return err
@@ -73,20 +67,20 @@ func (h *Handler) sendFreshContent(chatID int64, userID int, data *service.Point
 	return h.run.UpdateMessageIDs(h.ctx(), userID, data.VersionID, &sent.MessageID, nil)
 }
 
-// Отправить новое voice-сообщение (если есть) и сохранить его message_id, иначе очистить voice_msg_id
+// Отправить новое voice-/audio-сообщение (если есть) и сохранить его message_id, иначе очистить voice_msg_id
 func (h *Handler) sendFreshVoice(chatID int64, userID int, data *service.PointWithMedia) error {
-	if len(data.Voices) == 0 {
+	if len(data.VoiceIds) == 0 {
 		// очистить voice в прогрессе
 		zero := 0 // репозиторий должен трактовать 0 как NULL (через NULLIF)
 		return h.run.UpdateMessageIDs(h.ctx(), userID, data.VersionID, nil, &zero)
 	}
 
-	vo := tgbotapi.NewVoice(chatID, tgbotapi.FileURL(data.Voices[0]))
-	sent, err := h.bot.Send(vo)
+	// Отправляем через сервис (сам решит, чем слать по MIME; для аудио это будет Audio/Document)
+	_, msgID, err := h.tgMedia.SendMedia(h.ctx(), h.bot, chatID, data.VoiceIds[0], "", "")
 	if err != nil {
 		return err
 	}
-	return h.run.UpdateMessageIDs(h.ctx(), userID, data.VersionID, nil, &sent.MessageID)
+	return h.run.UpdateMessageIDs(h.ctx(), userID, data.VersionID, nil, &msgID)
 }
 
 /* =========================

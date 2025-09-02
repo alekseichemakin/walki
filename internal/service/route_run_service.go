@@ -27,8 +27,8 @@ func NewRouteRunService(rr repository.RouteRepository, or repository.OrderReposi
 // DTO, который отдаём телеграм-слою
 type PointWithMedia struct {
 	Point        *models.RoutePoint
-	Photos       []string
-	Voices       []string
+	PhotoIds     []int64
+	VoiceIds     []int64
 	VersionID    int
 	RouteID      int
 	Idx          int
@@ -209,7 +209,7 @@ func (s *RouteRunService) pack(
 	p *models.RoutePoint,
 ) (*PointWithMedia, error) {
 
-	photos, voices, err := s.runRepo.PointMedia(ctx, p.ID)
+	photoIds, voiceIds, err := s.runRepo.PointMediaIDs(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -233,8 +233,8 @@ func (s *RouteRunService) pack(
 
 	return &PointWithMedia{
 		Point:        p,
-		Photos:       photos,
-		Voices:       voices,
+		PhotoIds:     photoIds,
+		VoiceIds:     voiceIds,
 		VersionID:    verID,
 		RouteID:      routeID,
 		Idx:          p.Idx,

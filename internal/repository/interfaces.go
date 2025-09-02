@@ -30,9 +30,18 @@ type RouteRunRepository interface {
 	PointByIndex(ctx context.Context, versionID, idx int) (*models.RoutePoint, error)
 	NextIndex(ctx context.Context, versionID, after int) (int, bool, error)
 	PrevIndex(ctx context.Context, versionID, before int) (int, bool, error)
-	PointMedia(ctx context.Context, pointID int) (photos []string, audios []string, err error)
+	PointMediaIDs(ctx context.Context, pointID int) (photoIDs []int64, audioIDs []int64, err error)
 	UpsertProgress(ctx context.Context, userID, routeID, versionID int, idx int) error
 	GetProgress(ctx context.Context, userID, versionID int) (*models.RouteProgress, error)
 	Finish(ctx context.Context, userID, versionID int) error
 	UpdateMessageIDs(ctx context.Context, userID, versionID int, contentMsgID, voiceMsgID *int) error
+}
+
+type MediaRepository interface {
+	GetByID(ctx context.Context, id int64) (*models.Media, error)
+
+	UpdateStorage(ctx context.Context, mediaID int64, bucket, key, mimeType string, sizeBytes int64) error
+
+	GetTelegramFileID(ctx context.Context, mediaID int64) (fileID string, ok bool, err error)
+	UpsertTelegramFileID(ctx context.Context, mediaID int64, fileID, contentType string, chatID *int64) error
 }
